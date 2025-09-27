@@ -4,6 +4,9 @@ import { movies } from "@/data/movies";
 import { MovieGrid } from "@/components/MovieGrid";
 import { MovieDetail } from "@/components/MovieDetail";
 import { Header } from "@/components/Header";
+import { HeroSection } from "@/components/HeroSection";
+import { UpNextSection } from "@/components/UpNextSection";
+import { FeaturedMovies } from "@/components/FeaturedMovies";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -142,17 +145,36 @@ const Index = () => {
       />
       
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Featured Movies</h2>
-          <p className="text-subtle">
-            Discover, rate, and review your favorite films
-          </p>
-        </div>
-
-        <MovieGrid 
-          movies={filteredMovies}
-          onMovieClick={handleMovieClick}
-        />
+        {!searchQuery ? (
+          <div className="grid lg:grid-cols-4 gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-3">
+              <HeroSection />
+              <FeaturedMovies 
+                movies={filteredMovies}
+                onMovieClick={handleMovieClick}
+              />
+            </div>
+            
+            {/* Sidebar */}
+            <div className="lg:col-span-1">
+              <UpNextSection />
+            </div>
+          </div>
+        ) : (
+          <div>
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold mb-2">Search Results</h2>
+              <p className="text-subtle">
+                Found {filteredMovies.length} movie{filteredMovies.length !== 1 ? 's' : ''} matching "{searchQuery}"
+              </p>
+            </div>
+            <MovieGrid 
+              movies={filteredMovies}
+              onMovieClick={handleMovieClick}
+            />
+          </div>
+        )}
       </main>
     </div>
   );

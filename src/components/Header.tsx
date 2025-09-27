@@ -1,5 +1,7 @@
-import { Film } from "lucide-react";
+import { Film, Menu, Search, Bell, User } from "lucide-react";
 import { SearchBar } from "./SearchBar";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface HeaderProps {
   searchQuery: string;
@@ -9,31 +11,55 @@ interface HeaderProps {
 export function Header({ searchQuery, onSearchChange }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-[hsl(var(--movie-bg))]/95 backdrop-blur-sm border-b border-border/50">
-      <div className="max-w-7xl mx-auto px-4 py-4">
+      <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Film className="h-8 w-8 text-primary" />
-              <div>
-                <h1 className="text-2xl font-bold">CineReview</h1>
-                <p className="text-xs text-subtle">Your movie companion</p>
+          {/* Left Section */}
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary text-primary-foreground px-3 py-1 rounded font-bold text-lg">
+                CineDb
               </div>
             </div>
+            
+            <Button variant="ghost" size="sm" className="hidden md:flex">
+              <Menu className="h-4 w-4 mr-2" />
+              Menu
+            </Button>
+
+            <div className="hidden lg:flex items-center">
+              <Button variant="ghost" size="sm">
+                All
+              </Button>
+            </div>
           </div>
-          
-          <div className="flex-1 max-w-md mx-8">
+
+          {/* Center Search */}
+          <div className="flex-1 max-w-lg mx-6">
             <SearchBar
               value={searchQuery}
               onChange={onSearchChange}
-              placeholder="Search movies..."
+              placeholder="Search CineDb"
             />
           </div>
-          
+
+          {/* Right Section */}
           <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm font-medium">Welcome back!</p>
-              <p className="text-xs text-subtle">Discover your next favorite film</p>
-            </div>
+            <Badge variant="outline" className="hidden md:flex bg-primary/10 text-primary border-primary/20">
+              CineDb Pro
+            </Badge>
+            
+            <Button variant="ghost" size="sm" className="hidden md:flex">
+              <Bell className="h-4 w-4 mr-2" />
+              Watchlist
+            </Button>
+
+            <Button variant="default" size="sm">
+              Sign In
+            </Button>
+
+            <Button variant="ghost" size="sm" className="hidden sm:flex">
+              EN
+            </Button>
           </div>
         </div>
       </div>
