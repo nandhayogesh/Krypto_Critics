@@ -37,16 +37,8 @@ export function HeroSection() {
               With the Cast of "The Masters of Cinema"
             </p>
 
-            {/* Play Button and Stats */}
+            {/* Stats */}
             <div className="flex items-center gap-6 mb-6">
-              <Button 
-                size="lg" 
-                className="bg-white/20 hover:bg-white/30 text-white border border-white/30 backdrop-blur-sm"
-              >
-                <Play className="h-5 w-5 mr-2 fill-current" />
-                <span className="font-semibold">6:42</span>
-              </Button>
-
               <div className="flex items-center gap-4 text-white">
                 <div className="flex items-center gap-1">
                   <ThumbsUp className="h-4 w-4" />
@@ -60,6 +52,10 @@ export function HeroSection() {
                   <Eye className="h-4 w-4" />
                   <span className="text-sm">12.8K</span>
                 </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-sm">6:42</span>
+                </div>
               </div>
             </div>
 
@@ -69,13 +65,6 @@ export function HeroSection() {
               <span className="text-white/80 text-sm">4.3/5 • 1,247 reviews</span>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Play Icon Overlay */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
-          <Play className="h-8 w-8 text-white ml-1 fill-current" />
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { MovieGrid } from "@/components/MovieGrid";
 import { MovieDetail } from "@/components/MovieDetail";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
-import { UpNextSection } from "@/components/UpNextSection";
+import { ImageSlider } from "@/components/ImageSlider";
 import { FeaturedMovies } from "@/components/FeaturedMovies";
 import { useToast } from "@/hooks/use-toast";
 
@@ -158,7 +158,7 @@ const Index = () => {
             
             {/* Sidebar */}
             <div className="lg:col-span-1">
-              <UpNextSection />
+              <ImageSlider />
             </div>
           </div>
         ) : (
