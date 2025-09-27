@@ -47,6 +47,15 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        movie: {
+          bg: "hsl(var(--movie-bg))",
+          card: "hsl(var(--movie-card))",
+          "card-hover": "hsl(var(--movie-card-hover))",
+        },
+        rating: {
+          star: "hsl(var(--rating-star))",
+          empty: "hsl(var(--rating-empty))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
