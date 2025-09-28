@@ -17,13 +17,18 @@ export function MovieGrid({ movies, onMovieClick }: MovieGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-      {movies.map((movie) => (
-        <MovieCard
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
+      {movies.map((movie, index) => (
+        <div
           key={movie.id}
-          movie={movie}
-          onClick={() => onMovieClick?.(movie)}
-        />
+          className="movie-grid-item opacity-0 animate-fadeInUp"
+          style={{ animationDelay: `${(index % 8) * 0.1}s` }}
+        >
+          <MovieCard
+            movie={movie}
+            onClick={() => onMovieClick?.(movie)}
+          />
+        </div>
       ))}
     </div>
   );

@@ -6,34 +6,34 @@ import heroImage from "@/assets/hero-featured.jpg";
 
 export function HeroSection() {
   return (
-    <div className="relative h-[500px] overflow-hidden rounded-lg mb-8">
+    <div className="relative h-[400px] md:h-[500px] overflow-hidden rounded-lg mb-8 group">
       {/* Background Image */}
       <div className="absolute inset-0">
         <img
           src={heroImage}
           alt="Featured content"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/20 md:from-black/80 md:via-black/40 md:to-transparent" />
       </div>
 
       {/* Content */}
       <div className="relative h-full flex items-center">
         <div className="max-w-7xl mx-auto px-4 w-full">
-          <div className="max-w-2xl">
+          <div className="max-w-2xl animate-slideInFromLeft">
             {/* Brand Badge */}
             <div className="flex items-center gap-3 mb-4">
-              <Badge className="bg-primary text-primary-foreground font-bold text-sm px-3 py-1">
+              <Badge className="bg-primary text-primary-foreground font-bold text-sm px-3 py-1 animate-scaleIn">
                 CINE ORIGINALS
               </Badge>
             </div>
 
             {/* Title */}
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
               The Ultimate Cinema Test
             </h1>
             
-            <p className="text-lg text-gray-200 mb-6">
+            <p className="text-base md:text-lg text-gray-200 mb-6">
               With the Cast of "The Masters of Cinema"
             </p>
 

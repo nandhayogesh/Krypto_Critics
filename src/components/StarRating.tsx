@@ -7,6 +7,7 @@ interface StarRatingProps {
   onRatingChange?: (rating: number) => void;
   size?: "sm" | "md" | "lg";
   showValue?: boolean;
+  interactive?: boolean;
   className?: string;
 }
 
@@ -16,6 +17,7 @@ export function StarRating({
   onRatingChange, 
   size = "md",
   showValue = false,
+  interactive = false,
   className 
 }: StarRatingProps) {
   const sizeClasses = {
@@ -44,9 +46,9 @@ export function StarRating({
               onClick={() => handleStarClick(index)}
               disabled={!onRatingChange}
               className={cn(
-                "transition-colors duration-200",
-                onRatingChange && "cursor-pointer hover:scale-110",
-                !onRatingChange && "cursor-default"
+                "transition-all duration-200",
+                (onRatingChange || interactive) && "cursor-pointer hover:scale-110",
+                !(onRatingChange || interactive) && "cursor-default"
               )}
             >
               <Star

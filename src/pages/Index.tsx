@@ -1,17 +1,27 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Movie, Review } from "@/types/movie";
 import { movies } from "@/data/movies";
 import { MovieGrid } from "@/components/MovieGrid";
-import { MovieDetail } from "@/components/MovieDetail";
 import { Header } from "@/components/Header";
-import { HeroSection } from "@/components/HeroSection";
-import { ImageSlider } from "@/components/ImageSlider";
+import { HeroCarousel } from "@/components/HeroCarousel";
 import { FeaturedMovies } from "@/components/FeaturedMovies";
+import { EnhancedSearchBar, SearchFilters } from "@/components/EnhancedSearchBar";
+import { MovieGridSkeleton, HeroSkeleton } from "@/components/LoadingSkeletons";
+import { BottomNavigation } from "@/components/BottomNavigation";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>({
+    query: "",
+    genres: [],
+    yearRange: [1900, 2025],
+    ratingRange: [0, 5],
+    sortBy: 'title',
+    sortOrder: 'asc'
+  });
   const [userRatings, setUserRatings] = useState<Record<string, number>>({});
   const [movieReviews, setMovieReviews] = useState<Record<string, Review[]>>({
     "1": [
@@ -53,28 +63,55 @@ const Index = () => {
   const { toast } = useToast();
 
   const filteredMovies = useMemo(() => {
-    const moviesWithUserRatings = movies.map(movie => ({
+    let filtered = movies.map(movie => ({
       ...movie,
       userRating: userRatings[movie.id]
     }));
 
-    if (!searchQuery.trim()) {
-      return moviesWithUserRatings;
+    // Apply text search
+    if (searchFilters.query.trim()) {
+      const query = searchFilters.query.toLowerCase();
+      filtered = filtered.filter(movie =>
+        movie.title.toLowerCase().includes(query) ||
+        movie.director.toLowerCase().includes(query) ||
+        movie.genre.some(g => g.toLowerCase().includes(query))
+      );
     }
 
-    const query = searchQuery.toLowerCase();
-    return moviesWithUserRatings.filter(movie =>
-      movie.title.toLowerCase().includes(query) ||
-      movie.director.toLowerCase().includes(query) ||
-      movie.genre.some(g => g.toLowerCase().includes(query))
+    // Apply genre filters
+    if (searchFilters.genres.length > 0) {
+      filtered = filtered.filter(movie =>
+        searchFilters.genres.some(genre => movie.genre.includes(genre))
+      );
+    }
+
+    // Apply year range filter
+    filtered = filtered.filter(movie =>
+      movie.year >= searchFilters.yearRange[0] && movie.year <= searchFilters.yearRange[1]
     );
-  }, [searchQuery, userRatings]);
+
+    // Apply rating filter
+    filtered = filtered.filter(movie =>
+      movie.rating >= searchFilters.ratingRange[0] && movie.rating <= searchFilters.ratingRange[1]
+    );
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      const aValue = a[searchFilters.sortBy];
+      const bValue = b[searchFilters.sortBy];
+      
+      if (searchFilters.sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    return filtered;
+  }, [searchFilters, userRatings]);
 
   const handleMovieClick = (movie: Movie) => {
-    setSelectedMovie({
-      ...movie,
-      userRating: userRatings[movie.id]
-    });
+    navigate(`/movie/${movie.id}`);
   };
 
   const handleRatingChange = (movieId: string, rating: number) => {
@@ -117,65 +154,90 @@ const Index = () => {
     });
   };
 
-  if (selectedMovie) {
-    return (
-      <div className="min-h-screen">
-        <Header 
-          searchQuery=""
-          onSearchChange={() => {}}
-        />
-        <main className="max-w-7xl mx-auto px-4 py-8">
-          <MovieDetail
-            movie={selectedMovie}
-            reviews={movieReviews[selectedMovie.id] || []}
-            onBack={() => setSelectedMovie(null)}
-            onRatingChange={handleRatingChange}
-            onAddReview={handleAddReview}
-          />
-        </main>
-      </div>
-    );
-  }
+  const hasSearchQuery = searchFilters.query.trim() !== "";
+  const hasActiveFilters = searchFilters.genres.length > 0 || 
+    searchFilters.yearRange[0] !== 1900 || searchFilters.yearRange[1] !== 2025 ||
+    searchFilters.ratingRange[0] !== 0 || searchFilters.ratingRange[1] !== 5;
 
   return (
     <div className="min-h-screen">
       <Header 
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        searchQuery={searchFilters.query}
+        onSearchChange={(query) => setSearchFilters({ ...searchFilters, query })}
       />
       
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {!searchQuery ? (
-          <div className="grid lg:grid-cols-4 gap-8">
-            {/* Main Content */}
-            <div className="lg:col-span-3">
-              <HeroSection />
+        {!hasSearchQuery && !hasActiveFilters ? (
+          <div className="space-y-8">
+            {/* Hero Carousel */}
+            {isLoading ? (
+              <HeroSkeleton />
+            ) : (
+              <HeroCarousel onMovieClick={(movieId) => navigate(`/movie/${movieId}`)} />
+            )}
+            
+            {/* Featured Movies Section */}
+            {isLoading ? (
+              <MovieGridSkeleton count={8} />
+            ) : (
               <FeaturedMovies 
                 movies={filteredMovies}
                 onMovieClick={handleMovieClick}
               />
-            </div>
-            
-            {/* Sidebar */}
-            <div className="lg:col-span-1">
-              <ImageSlider />
-            </div>
+            )}
           </div>
         ) : (
-          <div>
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold mb-2">Search Results</h2>
+          <div className="space-y-6">
+            {/* Enhanced Search Bar */}
+            <EnhancedSearchBar 
+              filters={searchFilters}
+              onFiltersChange={setSearchFilters}
+              placeholder="Search movies, directors, genres..."
+            />
+            
+            {/* Search Results Header */}
+            <div className="border-b pb-4">
+              <h2 className="text-3xl font-bold mb-2">
+                {hasSearchQuery ? "Search Results" : "All Movies"}
+              </h2>
               <p className="text-subtle">
-                Found {filteredMovies.length} movie{filteredMovies.length !== 1 ? 's' : ''} matching "{searchQuery}"
+                Found {filteredMovies.length} movie{filteredMovies.length !== 1 ? 's' : ''}
+                {hasSearchQuery && ` matching "${searchFilters.query}"`}
               </p>
             </div>
-            <MovieGrid 
-              movies={filteredMovies}
-              onMovieClick={handleMovieClick}
-            />
+            
+            {/* Search Results */}
+            {isLoading ? (
+              <MovieGridSkeleton />
+            ) : (
+              <MovieGrid 
+                movies={filteredMovies}
+                onMovieClick={handleMovieClick}
+              />
+            )}
           </div>
         )}
       </main>
+      
+      {/* Mobile Bottom Navigation */}
+      <BottomNavigation 
+        activeTab={hasSearchQuery || hasActiveFilters ? 'search' : 'home'}
+        onTabChange={(tab) => {
+          if (tab === 'home') {
+            setSearchFilters({
+              query: "",
+              genres: [],
+              yearRange: [1900, 2025],
+              ratingRange: [0, 5],
+              sortBy: 'title',
+              sortOrder: 'asc'
+            });
+          }
+        }}
+      />
+      
+      {/* Add padding bottom for mobile to account for bottom navigation */}
+      <div className="h-20 md:hidden" />
     </div>
   );
 };

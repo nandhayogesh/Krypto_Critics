@@ -2,41 +2,43 @@ import { Movie, Review } from "@/types/movie";
 import { StarRating } from "./StarRating";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ReviewForm } from "./ReviewForm";
 import { Clock, Calendar, User, Heart, MessageCircle, ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { reviewService } from "@/lib/reviewService";
 
 interface MovieDetailProps {
   movie: Movie;
   reviews: Review[];
   onBack: () => void;
-  onRatingChange: (movieId: string, rating: number) => void;
-  onAddReview: (movieId: string, rating: number, comment: string) => void;
 }
 
 export function MovieDetail({ 
   movie, 
   reviews, 
-  onBack, 
-  onRatingChange, 
-  onAddReview 
+  onBack
 }: MovieDetailProps) {
-  const [userRating, setUserRating] = useState(movie.userRating || 0);
-  const [reviewText, setReviewText] = useState("");
+  const [movieStats, setMovieStats] = useState({ averageRating: 0, totalReviews: 0 });
 
-  const handleRatingChange = (rating: number) => {
-    setUserRating(rating);
-    onRatingChange(movie.id, rating);
+  useEffect(() => {
+    loadMovieStats();
+  }, [movie.id]);
+
+  const loadMovieStats = async () => {
+    try {
+      const stats = await reviewService.getMovieStats(movie.id);
+      setMovieStats(stats);
+    } catch (error) {
+      console.error('Error loading movie stats:', error);
+    }
   };
 
-  const handleSubmitReview = () => {
-    if (reviewText.trim() && userRating > 0) {
-      onAddReview(movie.id, userRating, reviewText.trim());
-      setReviewText("");
-    }
+  const handleReviewSubmitted = () => {
+    // Reload stats when a review is submitted
+    loadMovieStats();
   };
 
   return (
@@ -59,24 +61,6 @@ export function MovieDetail({
               alt={`${movie.title} poster`}
               className="w-full rounded-lg shadow-[var(--shadow-movie)]"
             />
-            
-            {/* Rating Section */}
-            <Card className="mt-6">
-              <CardHeader>
-                <h3 className="font-semibold">Your Rating</h3>
-              </CardHeader>
-              <CardContent>
-                <StarRating
-                  rating={userRating}
-                  onRatingChange={handleRatingChange}
-                  size="lg"
-                  className="justify-center"
-                />
-                <p className="text-center text-sm text-subtle mt-2">
-                  Click to rate
-                </p>
-              </CardContent>
-            </Card>
           </div>
         </div>
 
@@ -110,8 +94,10 @@ export function MovieDetail({
 
             <div className="flex items-center gap-4 mb-6">
               <div className="flex items-center gap-2">
-                <StarRating rating={movie.rating} size="lg" showValue />
-                <span className="text-subtle">({movie.reviewCount} reviews)</span>
+                <StarRating rating={movieStats.averageRating || movie.rating} size="lg" showValue />
+                <span className="text-subtle">
+                  ({movieStats.totalReviews || movie.reviewCount} reviews)
+                </span>
               </div>
             </div>
 
@@ -120,39 +106,15 @@ export function MovieDetail({
             </p>
           </div>
 
-          {/* Add Review Section */}
-          <Card className="mb-8">
-            <CardHeader>
-              <h3 className="font-semibold">Write a Review</h3>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Rating</label>
-                <StarRating
-                  rating={userRating}
-                  onRatingChange={handleRatingChange}
-                  size="lg"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Review</label>
-                <Textarea
-                  value={reviewText}
-                  onChange={(e) => setReviewText(e.target.value)}
-                  placeholder="Share your thoughts about this movie..."
-                  className="min-h-[100px]"
-                />
-              </div>
-              <Button 
-                onClick={handleSubmitReview}
-                disabled={!reviewText.trim() || userRating === 0}
-                className="w-full sm:w-auto"
-              >
-                <MessageCircle className="h-4 w-4 mr-2" />
-                Post Review
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Review Form */}
+          <div className="mb-8">
+            <ReviewForm 
+              movieId={movie.id}
+              movieTitle={movie.title}
+              moviePoster={movie.poster}
+              onReviewSubmitted={handleReviewSubmitted}
+            />
+          </div>
 
           {/* Reviews Section */}
           <div>

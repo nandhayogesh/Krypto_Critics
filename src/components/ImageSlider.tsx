@@ -24,7 +24,7 @@ export function ImageSlider() {
         <img
           src={sliderImages[currentIndex].poster}
           alt={sliderImages[currentIndex].title}
-          className="w-full h-full object-cover transition-transform duration-500"
+          className="w-full h-full object-cover transition-transform duration-300"
         />
         
         {/* Gradient Overlay */}

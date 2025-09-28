@@ -11,27 +11,39 @@ interface MovieCardProps {
 export function MovieCard({ movie, onClick }: MovieCardProps) {
   return (
     <div 
-      className="movie-card p-0 cursor-pointer group overflow-hidden"
+      className="movie-card p-0 cursor-pointer group overflow-hidden rounded-lg bg-card border border-border/50 transition-all duration-200 ease-out hover:border-primary/50 hover:shadow-lg"
       onClick={onClick}
     >
       {/* Movie Poster */}
-      <div className="relative aspect-[2/3] mb-4 overflow-hidden rounded-t-lg">
+      <div className="relative aspect-[2/3] mb-4 overflow-hidden rounded-t-lg bg-muted">
         <img
           src={movie.poster}
           alt={`${movie.title} poster`}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+          loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        {/* Subtle overlay on hover */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
         
         {/* Rating overlay */}
-        <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-sm rounded-full px-3 py-1">
+        <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-sm rounded-full px-2 py-1">
           <StarRating rating={movie.rating} size="sm" showValue />
+        </div>
+        
+        {/* Simple play icon on hover */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center">
+            <svg className="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </div>
         </div>
       </div>
 
       {/* Movie Info */}
       <div className="p-4 pt-0">
-        <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-primary transition-colors">
+        <h3 className="font-semibold text-lg mb-1 line-clamp-2 group-hover:text-primary transition-colors duration-200">
           {movie.title}
         </h3>
         
