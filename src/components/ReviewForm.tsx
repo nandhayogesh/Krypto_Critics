@@ -32,14 +32,7 @@ export function ReviewForm({ movieId, movieTitle, moviePoster, onReviewSubmitted
 
   // Debug authentication state
   useEffect(() => {
-    // Authentication state tracking for development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('ReviewForm Authentication:', {
-        movieId,
-        isAuthenticated,
-        hasUser: !!user
-      });
-    }
+    // Authentication state is ready for production
   }, [movieId, isAuthenticated, user]);
 
   // Load existing review when user changes (only if authenticated)
@@ -117,7 +110,6 @@ export function ReviewForm({ movieId, movieTitle, moviePoster, onReviewSubmitted
     e.preventDefault();
     
     if (!isAuthenticated || !user) {
-      console.log('🔐 ReviewForm: User not authenticated, showing sign-in modal');
       setShowAuthModal(true);
       return;
     }
@@ -147,7 +139,6 @@ export function ReviewForm({ movieId, movieTitle, moviePoster, onReviewSubmitted
   }
 
   // User is authenticated, show the review form
-  console.log('✅ ReviewForm: User authenticated, showing review form');
   
   return (
     <>

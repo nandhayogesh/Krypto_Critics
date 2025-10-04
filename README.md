@@ -183,12 +183,24 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/f36ab71e-b383-411b-9064-398aa664f62c) and click on Share -> Publish.
+This project can be deployed to various platforms:
 
-## Can I connect a custom domain to my Lovable project?
+### Vercel (Recommended)
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Configure environment variables
+4. Deploy with one click
 
-Yes, you can!
+### Netlify
+1. Build the project: `npm run build`
+2. Deploy the `dist` folder to Netlify
+3. Configure environment variables
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Other Platforms
+This project can be deployed to any static hosting service that supports Single Page Applications (SPAs).
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## Environment Variables
+
+Make sure to set up the following environment variables:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`

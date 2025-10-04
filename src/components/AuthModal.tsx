@@ -9,72 +9,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Loader2, Mail, Lock, User, AlertCircle, Film } from 'lucide-react';
 
-// Direct Supabase signin test function
-const testDirectSignin = async (email: string, password: string) => {
-  console.log('🧪 DIRECT SUPABASE TEST STARTING...');
-  console.log('📧 Email:', email);
-  console.log('🔒 Password length:', password.length);
-  console.log('⏰ Timestamp:', new Date().toISOString());
-  
-  if (!supabase) {
-    console.error('❌ Supabase client not available');
-    return { success: false, error: 'Supabase client not initialized' };
-  }
-  
-  try {
-    console.log('🔍 Testing basic connection...');
-    const { error: connectionError } = await supabase.auth.getSession();
-    if (connectionError && !connectionError.message.includes('session_not_found')) {
-      console.error('❌ Connection test failed:', connectionError.message);
-      return { success: false, error: `Connection failed: ${connectionError.message}` };
-    }
-    console.log('✅ Connection test passed');
-    
-    console.log('🔐 Attempting direct signin...');
-    const startTime = performance.now();
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    const endTime = performance.now();
-    const responseTime = Math.round(endTime - startTime);
-    
-    console.log(`⏱️ Response time: ${responseTime}ms`);
-    console.log('📦 Response data:', {
-      user: data?.user ? 'Present ✅' : 'Missing ❌',
-      session: data?.session ? 'Present ✅' : 'Missing ❌',
-      error: error ? `Present ❌: ${error.message}` : 'None ✅'
-    });
-    
-    if (error) {
-      console.error('❌ Signin error:', error.message);
-      console.error('❌ Error details:', error);
-      return { success: false, error: error.message, responseTime };
-    }
-    
-    if (data?.user && data?.session) {
-      console.log('🎉 DIRECT SIGNIN SUCCESSFUL!');
-      console.log('👤 User email confirmed:', data.user.email_confirmed_at ? 'Yes ✅' : 'No ❌');
-      return { success: true, user: data.user, session: data.session, responseTime };
-    }
-    
-    if (data?.user && !data?.session) {
-      console.log('⚠️ User found but no session (email confirmation needed)');
-      return { success: false, error: 'Email confirmation required', responseTime };
-    }
-    
-    console.log('❌ Unexpected response - no user or session');
-    return { success: false, error: 'Unexpected response format', responseTime };
-    
-  } catch (err: any) {
-    console.error('❌ Direct signin test failed:', err);
-    return { success: false, error: err.message || 'Network error' };
-  }
-};
-
-
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -120,27 +54,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setIsLoading(true);
     setError(null);
 
-    // Add debugging
-    console.log('🔐 Sign In Attempt:', {
-      email: signInData.email,
-      hasPassword: !!signInData.password,
-      passwordLength: signInData.password.length,
-      timestamp: new Date().toISOString(),
-      supabaseUrl: import.meta.env.VITE_SUPABASE_URL ? 'Set ✅' : 'Missing ❌',
-      supabaseKey: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Set ✅' : 'Missing ❌'
-    });
-
     try {
-      console.log('🔐 Starting signin process...');
       await signIn(signInData.email, signInData.password);
       
-      console.log('✅ Signin successful, closing modal...');
       // Only close modal and reset form on successful signin
       onClose();
       setSignInData({ email: '', password: '' });
       setError(null);
     } catch (err: any) {
-      console.error('❌ Signin failed:', err);
       let errorMessage = 'Sign in failed. Please try again.';
       
       if (err?.message) {
@@ -307,72 +228,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                   'Sign In'
                 )}
               </Button>
-              
-              {/* Temporary test button */}
-              <Button 
-                type="button" 
-                variant="outline" 
-                className="w-full" 
-                onClick={async () => {
-                  setIsLoading(true);
-                  setError(null);
-                  try {
-                    if (!signInData.email || !signInData.password) {
-                      setError('❌ Please enter email and password first');
-                      return;
-                    }
-                    
-                    console.log('🧪 Starting direct Supabase test...');
-                    const result = await testDirectSignin(signInData.email, signInData.password);
-                    
-                    if (result.success) {
-                      setError(`✅ DIRECT TEST SUCCESSFUL! Response time: ${result.responseTime}ms`);
-                      console.log('🎉 Direct test passed - the issue is in the React auth flow');
-                    } else {
-                      setError(`❌ DIRECT TEST FAILED: ${result.error}${result.responseTime ? ` (${result.responseTime}ms)` : ''}`);
-                      console.log('❌ Direct test failed - issue is with Supabase auth');
-                    }
-                    
-                  } catch (err: any) {
-                    console.error('❌ Test error:', err);
-                    setError('❌ Test error: ' + (err.message || 'Unknown error'));
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
-                disabled={isLoading}
-              >
-                🧪 Test Direct Supabase
-              </Button>
-              
-              <Button 
-                type="button" 
-                variant="secondary" 
-                className="w-full" 
-                onClick={async () => {
-                  setIsLoading(true);
-                  setError(null);
-                  try {
-                    if (!signInData.email || !signInData.password) {
-                      setError('❌ Please enter email and password first');
-                      return;
-                    }
-                    
-                    console.log('🧪 Testing via React Auth Context...');
-                    await signIn(signInData.email, signInData.password);
-                    setError('✅ REACT AUTH TEST SUCCESSFUL!');
-                    console.log('✅ React auth test passed');
-                  } catch (err: any) {
-                    console.error('❌ React auth test failed:', err);
-                    setError('❌ REACT AUTH FAILED: ' + (err.message || 'Unknown error'));
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
-                disabled={isLoading}
-              >
-                🧪 Test React Auth
-              </Button>
+
             </form>
           </TabsContent>
 
