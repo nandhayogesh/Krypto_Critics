@@ -15,42 +15,7 @@ const MovieDetailPage = () => {
   const { toast } = useToast();
   
   const [movie, setMovie] = useState<Movie | null>(null);
-  const [movieReviews, setMovieReviews] = useState<Record<string, Review[]>>({
-    "1": [
-      {
-        id: "r1",
-        movieId: "1",
-        userId: "u1",
-        username: "CinemaLover",
-        rating: 5,
-        comment: "Visually stunning and emotionally profound. Villeneuve has crafted a masterpiece that honors the original while carving its own path. The cinematography is breathtaking.",
-        createdAt: new Date("2024-01-15"),
-        likes: 23
-      },
-      {
-        id: "r2",
-        movieId: "1",
-        userId: "u2",
-        username: "SciFiFan42",
-        rating: 4,
-        comment: "A worthy successor to the original Blade Runner. The world-building is incredible and the themes are more relevant than ever.",
-        createdAt: new Date("2024-01-10"),
-        likes: 15
-      }
-    ],
-    "4": [
-      {
-        id: "r3",
-        movieId: "4",
-        userId: "u3",
-        username: "FilmBuff",
-        rating: 5,
-        comment: "Tarantino at his absolute best. The dialogue, the structure, the performances - everything is perfect. A true classic.",
-        createdAt: new Date("2024-01-20"),
-        likes: 42
-      }
-    ]
-  });
+  const [movieReviews, setMovieReviews] = useState<Record<string, Review[]>>({});
 
   useEffect(() => {
     if (id) {
@@ -66,7 +31,7 @@ const MovieDetailPage = () => {
   if (!movie) {
     return (
       <div className="min-h-screen">
-        <Header searchQuery="" onSearchChange={() => {}} />
+        <Header />
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -85,7 +50,7 @@ const MovieDetailPage = () => {
 
   return (
     <div className="min-h-screen">
-      <Header searchQuery="" onSearchChange={() => {}} />
+      <Header />
       <main className="max-w-7xl mx-auto px-4 py-8">
         <Breadcrumb 
           items={[

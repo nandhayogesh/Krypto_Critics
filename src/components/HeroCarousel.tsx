@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Play, ThumbsUp, Heart, Clock, Eye } from "lucide-react";
+import { Play, ThumbsUp, Heart, Clock, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StarRating } from "./StarRating";
@@ -24,7 +24,7 @@ export function HeroCarousel({ onMovieClick, autoSlideInterval = 4000 }: HeroCar
 
   // Auto-slide functionality
   useEffect(() => {
-    if (!isAutoSliding || isPaused) return;
+    if (!isAutoSliding) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => {
@@ -34,7 +34,7 @@ export function HeroCarousel({ onMovieClick, autoSlideInterval = 4000 }: HeroCar
     }, autoSlideInterval);
 
     return () => clearInterval(interval);
-  }, [isAutoSliding, isPaused, autoSlideInterval]);
+  }, [isAutoSliding, autoSlideInterval]);
 
   const goToSlide = useCallback((index: number) => {
     setCurrentIndex(index);
@@ -93,26 +93,16 @@ export function HeroCarousel({ onMovieClick, autoSlideInterval = 4000 }: HeroCar
           event.preventDefault();
           goToNext();
           break;
-        case ' ':
-          event.preventDefault();
-          setIsAutoSliding(prev => !prev);
-          break;
-        case 'Enter':
-          event.preventDefault();
-          onMovieClick?.(currentMovie.id);
-          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentMovie.id, goToPrevious, goToNext, onMovieClick]);
+  }, [goToPrevious, goToNext]);
 
   return (
     <div 
       className="relative h-[500px] md:h-[600px] overflow-hidden rounded-xl mb-8 group select-none focus-within:ring-2 focus-within:ring-primary"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -267,13 +257,10 @@ export function HeroCarousel({ onMovieClick, autoSlideInterval = 4000 }: HeroCar
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20 z-20">
         <div 
           key={currentIndex} // Force re-render for each slide
-          className={cn(
-            "h-full bg-primary",
-            isAutoSliding && !isPaused ? "animate-pulse" : ""
-          )}
+          className="h-full bg-primary"
           style={{ 
             width: `${((currentIndex + 1) / heroMovies.length) * 100}%`,
-            transition: isAutoSliding && !isPaused ? `width ${autoSlideInterval}ms linear` : 'width 300ms ease'
+            transition: isAutoSliding ? `width ${autoSlideInterval}ms linear` : 'width 300ms ease'
           }}
         />
       </div>
@@ -287,33 +274,9 @@ export function HeroCarousel({ onMovieClick, autoSlideInterval = 4000 }: HeroCar
         </div>
       </div>
 
-      {/* Auto-slide Status - Always Visible */}
-      <div className="absolute top-6 left-6 z-20">
-        {isAutoSliding && !isPaused && (
-          <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1">
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-            <span className="text-white text-xs">Auto-playing</span>
-          </div>
-        )}
-      </div>
 
-      {/* Controls and Info */}
-      <div className="absolute top-6 right-6 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="bg-black/20 hover:bg-black/40 text-white backdrop-blur-sm"
-          onClick={() => setIsAutoSliding(!isAutoSliding)}
-          aria-label={isAutoSliding ? "Pause slideshow" : "Resume slideshow"}
-        >
-          {isAutoSliding ? "Pause" : "Play"}
-        </Button>
-        
-        {/* Keyboard hints */}
-        <div className="hidden md:block text-xs text-white/70 bg-black/20 backdrop-blur-sm rounded px-2 py-1">
-          ← → Navigate • Space Pause • Enter View
-        </div>
-      </div>
+
+
     </div>
   );
 }

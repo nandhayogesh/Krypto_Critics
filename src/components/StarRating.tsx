@@ -54,8 +54,9 @@ export function StarRating({
               <Star
                 className={cn(
                   sizeClasses[size],
-                  isFilled ? "rating-star fill-current" : "rating-empty",
-                  isHalfFilled && "rating-star fill-current opacity-50"
+                  "transition-colors duration-200",
+                  isFilled ? "text-yellow-500 fill-yellow-500" : "text-slate-600",
+                  isHalfFilled && "text-yellow-500 fill-yellow-500 opacity-50"
                 )}
               />
             </button>
@@ -63,7 +64,7 @@ export function StarRating({
         })}
       </div>
       {showValue && (
-        <span className="text-sm text-subtle ml-1">
+        <span className="text-sm text-yellow-500 ml-1 font-medium">
           {rating > 0 ? rating.toFixed(1) : "—"}
         </span>
       )}

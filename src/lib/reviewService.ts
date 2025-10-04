@@ -23,7 +23,14 @@ export interface SupabaseReview {
 export const reviewService = {
   // Get reviews for a movie
   async getMovieReviews(movieId: string): Promise<Review[]> {
+    if (!supabase) {
+      console.warn('⚠️ Supabase not initialized, using fallback');
+      fallbackReviewService.setOfflineMode(true);
+      return await fallbackReviewService.getMovieReviews(movieId);
+    }
+
     try {
+      console.log(`🔍 Loading reviews for movie ${movieId}...`);
       const { data, error } = await supabase
         .from('reviews')
         .select(`
@@ -38,39 +45,83 @@ export const reviewService = {
         .eq('movie_id', movieId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database error loading reviews:', error);
+        // Only set offline mode for connection errors, not for other types of errors
+        if (error.message.includes('connection') || error.message.includes('network') || error.message.includes('timeout')) {
+          console.warn('🌐 Connection issue detected, switching to offline mode');
+          fallbackReviewService.setOfflineMode(true);
+          return await fallbackReviewService.getMovieReviews(movieId);
+        }
+        throw error;
+      }
+      
+      // Reset offline mode if successful
+      fallbackReviewService.setOfflineMode(false);
+      console.log(`✅ Loaded ${data.length} reviews for movie ${movieId}`);
       return data.map(this.transformReview);
-    } catch (error) {
-      console.warn('Supabase unavailable, using fallback:', error);
-      fallbackReviewService.setOfflineMode(true);
-      return await fallbackReviewService.getMovieReviews(movieId);
+    } catch (error: any) {
+      console.warn('⚠️ Error loading reviews:', error.message);
+      // Only set offline mode for network-related errors
+      if (error.message.includes('connection') || error.message.includes('network') || error.message.includes('timeout') || error.message.includes('fetch')) {
+        console.warn('🌐 Network error detected, switching to offline mode');
+        fallbackReviewService.setOfflineMode(true);
+        return await fallbackReviewService.getMovieReviews(movieId);
+      }
+      throw error;
     }
   },
 
   // Get user's reviews
   async getUserReviews(userId: string): Promise<Review[]> {
-    const { data, error } = await supabase
-      .from('reviews')
-      .select(`
-        *,
-        profiles (
-          username,
-          first_name,
-          last_name,
-          avatar_url
-        )
-      `)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+    if (!supabase) {
+      console.warn('Supabase not initialized, using fallback');
+      fallbackReviewService.setOfflineMode(true);
+      return await fallbackReviewService.getUserReviews(userId);
+    }
 
-    if (error) throw error;
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select(`
+          *,
+          profiles (
+            username,
+            first_name,
+            last_name,
+            avatar_url
+          )
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-    return data.map(this.transformReview);
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      // Reset offline mode if successful
+      fallbackReviewService.setOfflineMode(false);
+      console.log(`✅ Loaded ${data.length} reviews for user ${userId}`);
+      return data.map(this.transformReview);
+    } catch (error) {
+      console.warn('Supabase unavailable for user reviews, using fallback:', error);
+      fallbackReviewService.setOfflineMode(true);
+      return await fallbackReviewService.getUserReviews(userId);
+    }
   },
 
   // Create or update review
   async upsertReview(userId: string, movieId: string, rating: number, reviewText?: string, movieTitle?: string, moviePoster?: string): Promise<Review> {
+    if (!supabase) {
+      console.warn('Supabase not initialized, using fallback');
+      fallbackReviewService.setOfflineMode(true);
+      return await fallbackReviewService.upsertReview(userId, movieId, rating, reviewText);
+    }
+
     try {
+      console.log(`📝 Saving review for movie ${movieId}: rating=${rating}`);
+      
       const reviewData = {
         user_id: userId,
         movie_id: movieId,
@@ -98,7 +149,14 @@ export const reviewService = {
         `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error saving review:', error);
+        throw error;
+      }
+      
+      // Reset offline mode if successful
+      fallbackReviewService.setOfflineMode(false);
+      console.log('✅ Review saved successfully:', data.id);
       return this.transformReview(data);
     } catch (error) {
       console.warn('Supabase unavailable for review, using fallback:', error);

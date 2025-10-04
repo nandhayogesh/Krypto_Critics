@@ -3,11 +3,53 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
+console.log('🔧 Supabase Configuration Check:');
+console.log('URL:', supabaseUrl ? '✅ Set' : '❌ Missing');
+console.log('Key:', supabaseAnonKey ? '✅ Set' : '❌ Missing');
+
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+  console.error('❌ Missing Supabase environment variables!');
+  console.log('Expected variables: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Simple Supabase client configuration
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    })
+  : null;
+
+if (supabase) {
+  console.log('✅ Supabase client initialized successfully');
+} else {
+  console.error('❌ Supabase client initialization failed');
+}
+
+// Simple connection test
+export const testConnection = async () => {
+  if (!supabase) {
+    console.error('❌ Cannot test connection - Supabase client not initialized');
+    return false;
+  }
+  
+  try {
+    console.log('🔍 Testing Supabase connection...');
+    const { error } = await supabase.auth.getSession();
+    if (error && !error.message.includes('session_not_found')) {
+      console.error('❌ Connection test failed:', error.message);
+      return false;
+    }
+    console.log('✅ Supabase connection successful');
+    return true;
+  } catch (error: any) {
+    console.error('❌ Connection test error:', error.message);
+    return false;
+  }
+};
 
 // Database types
 export type Database = {

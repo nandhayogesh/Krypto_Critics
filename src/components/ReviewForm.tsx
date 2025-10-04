@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { reviewService } from '@/lib/reviewService';
+import { movieStatsService } from '@/lib/movieStatsService';
 import { Review } from '@/types/movie';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,18 @@ export function ReviewForm({ movieId, movieTitle, moviePoster, onReviewSubmitted
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Load existing review when user changes
+  // Debug authentication state
+  useEffect(() => {
+    console.log('🎬 ReviewForm Debug:', {
+      movieId,
+      movieTitle,
+      isAuthenticated,
+      user: user ? { id: user.id, email: user.email } : null,
+      hasExistingReview: !!existingReview
+    });
+  }, [movieId, movieTitle, isAuthenticated, user, existingReview]);
+
+  // Load existing review when user changes (only if authenticated)
   useEffect(() => {
     if (isAuthenticated && user) {
       loadExistingReview();
@@ -78,6 +90,9 @@ export function ReviewForm({ movieId, movieTitle, moviePoster, onReviewSubmitted
       
       const review = await reviewService.upsertReview(user.id, movieId, rating, reviewText.trim(), movieTitle, moviePoster);
       
+      // Update movie stats after review submission
+      await movieStatsService.updateMovieStats(movieId);
+      
       setSuccess(existingReview ? 'Review updated successfully!' : 'Review added successfully!');
       setExistingReview(review);
       onReviewSubmitted?.(review);
@@ -96,41 +111,22 @@ export function ReviewForm({ movieId, movieTitle, moviePoster, onReviewSubmitted
     setError('');
   };
 
-  if (!isAuthenticated) {
-    return (
-      <>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              Rate & Review
-            </CardTitle>
-            <CardDescription>
-              Share your thoughts about {movieTitle}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Alert>
-              <Star className="h-4 w-4" />
-              <AlertDescription className="flex items-center justify-between">
-                <span>Sign in to rate and review this movie</span>
-                <Button onClick={() => setShowAuthModal(true)} size="sm">
-                  Sign In
-                </Button>
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
+  // Handle form submission - check authentication before submitting
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!isAuthenticated || !user) {
+      console.log('🔐 ReviewForm: User not authenticated, showing sign-in modal');
+      setShowAuthModal(true);
+      return;
+    }
+    
+    // User is authenticated, proceed with normal submission
+    handleSubmit(e);
+  };
 
-        <AuthModal 
-          isOpen={showAuthModal} 
-          onClose={() => setShowAuthModal(false)} 
-        />
-      </>
-    );
-  }
-
-  if (isLoadingExisting) {
+  // Only show loading state if user is authenticated and we're loading their existing review
+  if (isAuthenticated && user && isLoadingExisting) {
     return (
       <Card>
         <CardHeader>
@@ -149,6 +145,9 @@ export function ReviewForm({ movieId, movieTitle, moviePoster, onReviewSubmitted
     );
   }
 
+  // User is authenticated, show the review form
+  console.log('✅ ReviewForm: User authenticated, showing review form');
+  
   return (
     <>
       <Card>
@@ -166,6 +165,15 @@ export function ReviewForm({ movieId, movieTitle, moviePoster, onReviewSubmitted
         </CardHeader>
         
         <CardContent>
+          {!isAuthenticated && (
+            <Alert className="mb-4 border-blue-200 bg-blue-50">
+              <Star className="h-4 w-4" />
+              <AlertDescription className="text-blue-800">
+                Try out the rating and review form below. Sign in when you're ready to submit!
+              </AlertDescription>
+            </Alert>
+          )}
+          
           {success && (
             <Alert className="mb-4 border-green-200 bg-green-50">
               <AlertDescription className="text-green-800">{success}</AlertDescription>
@@ -178,7 +186,7 @@ export function ReviewForm({ movieId, movieTitle, moviePoster, onReviewSubmitted
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleFormSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label>Your Rating</Label>
               <div className="flex items-center gap-4">
@@ -219,6 +227,8 @@ export function ReviewForm({ movieId, movieTitle, moviePoster, onReviewSubmitted
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   {existingReview ? 'Updating...' : 'Submitting...'}
                 </>
+              ) : !isAuthenticated || !user ? (
+                'Sign In to Submit Review'
               ) : (
                 existingReview ? 'Update Review' : 'Submit Review'
               )}

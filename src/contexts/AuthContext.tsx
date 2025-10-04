@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase, testConnection } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 
 interface Profile {
@@ -51,12 +51,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Get initial session with error handling
     const initAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) throw error;
+        console.log('🚀 Initializing authentication...');
         
+        // Test connection first
+        if (!supabase) {
+          console.warn('⚠️ Supabase client not available');
+          setIsLoading(false);
+          return;
+        }
+
+        const connectionOk = await testConnection();
+        if (!connectionOk) {
+          console.warn('⚠️ Supabase connection failed, auth unavailable');
+          setIsLoading(false);
+          return;
+        }
+        
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error && !error.message.includes('session_not_found')) {
+          console.error('Auth initialization error:', error);
+          throw error;
+        }
+        
+        console.log('📍 Initial session:', session ? 'Found active session' : 'No active session');
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
+          console.log('👤 Fetching profile for user:', session.user.email);
           await fetchProfile(session.user.id);
         }
       } catch (error) {
@@ -71,25 +92,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Listen for auth changes with error handling
     let subscription: any;
-    try {
-      const {
-        data: { subscription: authSubscription },
-      } = supabase.auth.onAuthStateChange(async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
-        }
-        
+    if (supabase) {
+      try {
+        const {
+          data: { subscription: authSubscription },
+        } = supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log('🔄 Auth state change:', event, session ? 'Session active' : 'No session');
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            console.log('👤 Updating profile for user:', session.user.email);
+            await fetchProfile(session.user.id);
+          } else {
+            setProfile(null);
+          }
+          
+          setIsLoading(false);
+        });
+        subscription = authSubscription;
+      } catch (error) {
+        console.error('Failed to set up auth listener:', error);
         setIsLoading(false);
-      });
-      subscription = authSubscription;
-    } catch (error) {
-      console.error('Failed to set up auth listener:', error);
-      setIsLoading(false);
+      }
     }
 
     return () => {
@@ -122,6 +147,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signUp = async (email: string, password: string, userData: { username: string; firstName: string; lastName: string }) => {
     setIsLoading(true);
     try {
+      if (!supabase) {
+        throw new Error('Authentication service unavailable. Please check your connection.');
+      }
+      
+      console.log('🆕 Attempting signup for:', email);
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -131,33 +162,60 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             first_name: userData.firstName,
             last_name: userData.lastName,
           },
+          emailRedirectTo: window.location.origin
         },
       });
 
-      if (error) throw error;
+      console.log('📝 Signup response:', { 
+        user: data?.user ? `${data.user.email}` : 'None',
+        session: data?.session ? 'Active' : 'None',
+        error: error ? error.message : 'None'
+      });
 
-      console.log('Signup response:', { data, error }); // Debug logging
-
-      if (data.user && !data.session) {
-        // User created but needs email confirmation
-        toast({
-          title: "Account created!",
-          description: "Please check your email (including spam folder) to verify your account.",
-        });
-      } else if (data.user && data.session) {
-        // User created and immediately signed in (email confirmation disabled)
-        toast({
-          title: "Welcome!",
-          description: "Account created successfully!",
-        });
+      if (error) {
+        console.error('❌ Signup error:', error);
+        
+        if (error.message.includes('already registered') || error.message.includes('already exists')) {
+          throw new Error('An account with this email already exists. Please try signing in instead.');
+        }
+        if (error.message.includes('Password should be')) {
+          throw new Error('Password must be at least 6 characters long.');
+        }
+        if (error.message.includes('Invalid email')) {
+          throw new Error('Please enter a valid email address.');
+        }
+        
+        throw new Error(`Sign up failed: ${error.message}`);
       }
+
+      if (data.user) {
+        if (data.session) {
+          // User created and immediately signed in
+          console.log('✅ Signup successful with immediate signin!');
+          toast({
+            title: "Welcome!",
+            description: "Account created successfully! You are now signed in.",
+          });
+        } else {
+          // User created but needs email confirmation
+          console.log('📧 Signup successful, email confirmation required');
+          toast({
+            title: "Account created!",
+            description: "Please check your email and click the confirmation link to complete setup.",
+          });
+        }
+        return;
+      }
+      
+      throw new Error('Account creation failed. Please try again.');
+      
     } catch (error) {
       const authError = error as AuthError;
-      console.error('Signup error:', authError); // Debug logging
+      console.error('❌ Signup error:', authError);
       
       toast({
         title: "Sign up failed",
-        description: authError.message,
+        description: authError.message || 'Failed to create account',
         variant: "destructive",
       });
       throw error;
@@ -167,51 +225,86 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    setIsLoading(true);
+    
+    // Set a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      setIsLoading(false);
+      console.error('❌ Signin timeout - taking too long');
+    }, 15000); // 15 second timeout
+    
     try {
-      // Add timeout to prevent hanging
-      const signInPromise = supabase.auth.signInWithPassword({
+      if (!supabase) {
+        throw new Error('Authentication service unavailable. Please check your connection.');
+      }
+      
+      console.log('🔐 Attempting signin for:', email);
+      console.log('🔧 Current timestamp:', new Date().toISOString());
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Connection timeout - please check your internet connection and try again')), 10000)
-      );
-      
-      const { data, error } = await Promise.race([signInPromise, timeoutPromise]) as any;
+      console.log('📨 Signin response:', { 
+        user: data?.user ? `${data.user.email}` : 'None',
+        session: data?.session ? 'Active' : 'None',
+        error: error ? error.message : 'None',
+        timestamp: new Date().toISOString()
+      });
 
       if (error) {
-        // Handle network/connection errors
-        if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
-          throw new Error('Connection failed. Please check your internet connection and try again.');
-        }
+        console.error('❌ Signin error details:', error);
+        console.error('❌ Error code:', error.status);
+        console.error('❌ Error name:', error.name);
         
-        // Handle specific error cases
-        if (error.message.includes('Email not confirmed')) {
-          throw new Error('Please check your email and click the confirmation link before signing in.');
+        // Provide user-friendly error messages
+        if (error.message.includes('Invalid login credentials') || error.message.includes('invalid_credentials')) {
+          throw new Error('Invalid email or password. Please check your credentials and try again.');
         }
-        if (error.message.includes('Invalid login credentials')) {
-          throw new Error('Invalid email or password. Please check your credentials.');
+        if (error.message.includes('Email not confirmed') || error.message.includes('email_not_confirmed')) {
+          throw new Error('Please check your email and click the confirmation link before signing in.');
         }
         if (error.message.includes('signup_disabled')) {
           throw new Error('Sign up is currently disabled. Please try again later.');
         }
-        throw new Error(error.message || 'Sign in failed. Please try again.');
+        if (error.message.includes('rate limit') || error.message.includes('rate_limit_exceeded')) {
+          throw new Error('Too many attempts. Please wait a few minutes before trying again.');
+        }
+        if (error.message.includes('User not found') || error.message.includes('user_not_found')) {
+          throw new Error('No account found with this email. Please create an account first.');
+        }
+        
+        // Generic error message for other cases
+        throw new Error(`Sign in failed: ${error.message}`);
       }
 
       if (data.user && data.session) {
+        console.log('✅ Signin successful!');
         toast({
           title: "Welcome back!",
           description: "You have been signed in successfully.",
         });
-      } else if (data.user && !data.session) {
-        throw new Error('Please confirm your email before signing in.');
-      } else {
-        throw new Error('Sign in failed. Please try again.');
+        return;
       }
+      
+      if (data.user && !data.session) {
+        throw new Error('Please confirm your email before signing in.');
+      }
+      
+      throw new Error('Sign in failed. Please try again.');
+      
     } catch (error: any) {
-      // Don't show toast here, let the component handle it
+      console.error('❌ Signin error:', error);
+      toast({
+        title: "Sign in failed",
+        description: error.message || 'An unexpected error occurred',
+        variant: "destructive",
+      });
       throw error;
+    } finally {
+      clearTimeout(timeoutId);
+      setIsLoading(false);
     }
   };
 

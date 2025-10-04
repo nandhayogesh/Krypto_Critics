@@ -2,52 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Letterboxd-inspired movie review app design system
+/* KryptoCritics - Professional movie review app design system
 All colors MUST be HSL.
+Professional Color Palette:
+- Primary: Deep navy blue (#1a202c)
+- Secondary: Charcoal gray (#2d3748)
+- Accent: Subtle gold (#f6e05e)
+- Text: Clean whites and grays
 */
 
 @layer base {
   :root {
-    --background: 210 11% 15%;
-    --foreground: 210 11% 85%;
+    --background: 210 24% 16%;           /* Deep navy background */
+    --foreground: 210 16% 93%;           /* Light gray text */
 
-    --card: 210 11% 18%;
-    --card-foreground: 210 11% 90%;
+    --card: 210 24% 20%;                /* Dark blue-gray card */
+    --card-foreground: 210 16% 93%;     /* Light text */
 
-    --popover: 210 11% 18%;
-    --popover-foreground: 210 11% 90%;
+    --popover: 210 24% 20%;             /* Dark popover */
+    --popover-foreground: 210 16% 93%;  /* Light text */
 
-    --primary: 25 95% 53%;
-    --primary-foreground: 210 11% 15%;
+    --primary: 210 40% 24%;             /* Professional navy */
+    --primary-foreground: 210 16% 93%;  /* Light text on primary */
 
-    --secondary: 210 11% 25%;
-    --secondary-foreground: 210 11% 85%;
+    --secondary: 215 20% 25%;           /* Charcoal gray */
+    --secondary-foreground: 210 16% 93%; /* Light text */
 
-    --muted: 210 11% 25%;
-    --muted-foreground: 210 11% 65%;
+    --muted: 215 16% 22%;               /* Muted gray-blue */
+    --muted-foreground: 215 10% 65%;    /* Muted text */
 
-    --accent: 25 95% 53%;
-    --accent-foreground: 210 11% 15%;
+    --accent: 45 95% 68%;               /* Subtle gold accent */
+    --accent-foreground: 210 24% 16%;   /* Dark text on accent */
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 11% 90%;
+    --destructive: 0 65% 51%;           /* Subtle red for errors */
+    --destructive-foreground: 210 16% 93%; /* Light text */
 
-    --border: 210 11% 25%;
-    --input: 210 11% 25%;
-    --ring: 25 95% 53%;
+    --border: 215 16% 28%;              /* Subtle border */
+    --input: 215 20% 25%;               /* Input background */
+    --ring: 45 95% 68%;                 /* Gold focus ring */
 
-    --radius: 0.375rem;
+    --radius: 0.5rem;
 
-    /* Movie app specific tokens */
-    --movie-bg: 210 11% 12%;
-    --movie-card: 210 11% 18%;
-    --movie-card-hover: 210 11% 22%;
-    --rating-star: 45 100% 65%;
-    --rating-empty: 210 11% 35%;
-    --text-subtle: 210 11% 55%;
-    --gradient-hero: linear-gradient(135deg, hsl(210 11% 15%), hsl(210 11% 12%));
-    --shadow-movie: 0 4px 20px -2px hsl(210 11% 5% / 0.5);
-    --shadow-glow: 0 0 30px hsl(25 95% 53% / 0.2), 0 0 60px hsl(25 95% 53% / 0.1);
+    /* Professional app specific tokens */
+    --movie-bg: 210 24% 12%;            /* Very deep navy */
+    --movie-card: 210 24% 20%;          /* Card background */
+    --movie-card-hover: 210 24% 24%;    /* Hover state */
+    --rating-star: 45 95% 68%;          /* Gold stars */
+    --rating-empty: 215 10% 40%;        /* Empty stars */
+    --text-subtle: 215 10% 65%;         /* Subtle text */
+    --gradient-hero: linear-gradient(135deg, hsl(210 24% 12%), hsl(210 24% 16%)); /* Subtle gradient */
+    --shadow-movie: 0 4px 20px -2px hsl(210 40% 8% / 0.4); /* Professional shadow */
+    --shadow-glow: 0 0 20px hsl(45 95% 68% / 0.1); /* Subtle gold glow */
 
     --sidebar-background: 0 0% 98%;
 
@@ -155,8 +160,23 @@ All colors MUST be HSL.
     }
   }
 
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .animate-fade-in {
     animation: fadeIn 0.3s var(--ease-decelerate) forwards;
+  }
+
+  .animate-fadeInUp {
+    animation: fadeInUp 0.5s ease-out forwards;
   }
 
   /* Minimal stagger for grid items - only first 4 items */

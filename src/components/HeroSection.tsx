@@ -6,7 +6,7 @@ import heroImage from "@/assets/hero-featured.jpg";
 
 export function HeroSection() {
   return (
-    <div className="relative h-[400px] md:h-[500px] overflow-hidden rounded-lg mb-8 group">
+    <div className="relative h-[400px] md:h-[500px] overflow-hidden rounded-lg mb-8 group bg-slate-900">
       {/* Background Image */}
       <div className="absolute inset-0">
         <img
@@ -14,7 +14,7 @@ export function HeroSection() {
           alt="Featured content"
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/20 md:from-black/80 md:via-black/40 md:to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/20" />
       </div>
 
       {/* Content */}
@@ -23,8 +23,8 @@ export function HeroSection() {
           <div className="max-w-2xl animate-slideInFromLeft">
             {/* Brand Badge */}
             <div className="flex items-center gap-3 mb-4">
-              <Badge className="bg-primary text-primary-foreground font-bold text-sm px-3 py-1 animate-scaleIn">
-                CINE ORIGINALS
+              <Badge className="bg-slate-800 text-yellow-500 font-bold text-sm px-4 py-2 animate-scaleIn border border-slate-700">
+                FEATURED CONTENT
               </Badge>
             </div>
 
@@ -33,27 +33,27 @@ export function HeroSection() {
               The Ultimate Cinema Test
             </h1>
             
-            <p className="text-base md:text-lg text-gray-200 mb-6">
+            <p className="text-base md:text-lg text-gray-300 mb-6">
               With the Cast of "The Masters of Cinema"
             </p>
 
             {/* Stats */}
             <div className="flex items-center gap-6 mb-6">
-              <div className="flex items-center gap-4 text-white">
+              <div className="flex items-center gap-4 text-gray-300">
                 <div className="flex items-center gap-1">
-                  <ThumbsUp className="h-4 w-4" />
+                  <ThumbsUp className="h-4 w-4 text-yellow-500" />
                   <span className="text-sm">425</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Heart className="h-4 w-4" />
+                  <Heart className="h-4 w-4 text-red-400" />
                   <span className="text-sm">92</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-4 w-4 text-blue-400" />
                   <span className="text-sm">12.8K</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
+                  <Clock className="h-4 w-4 text-yellow-500" />
                   <span className="text-sm">6:42</span>
                 </div>
               </div>
@@ -62,7 +62,7 @@ export function HeroSection() {
             {/* Rating */}
             <div className="flex items-center gap-3">
               <StarRating rating={4.3} size="md" />
-              <span className="text-white/80 text-sm">4.3/5 • 1,247 reviews</span>
+              <span className="text-gray-300 text-sm">4.3/5 • 1,247 reviews</span>
             </div>
           </div>
         </div>

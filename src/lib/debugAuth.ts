@@ -5,10 +5,16 @@ export const testSupabaseConnection = async () => {
   try {
     console.log('🔗 Testing Supabase connection...');
     
+    if (!supabase) {
+      console.error('❌ Supabase client not initialized - check environment variables');
+      console.log('Expected: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
+      return false;
+    }
+    
     // Test auth connection
     const { data, error } = await supabase.auth.getSession();
     
-    if (error) {
+    if (error && !error.message.includes('session_not_found')) {
       console.error('❌ Supabase auth error:', error.message);
       return false;
     }
@@ -32,6 +38,12 @@ export const testSupabaseConnection = async () => {
 export const testSignIn = async (email: string, password: string) => {
   try {
     console.log('🔐 Testing signin for:', email);
+    
+    if (!supabase) {
+      const error = new Error('Supabase client not initialized');
+      console.error('❌ Cannot test signin:', error.message);
+      return { data: null, error };
+    }
     
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
