@@ -1,15 +1,12 @@
 // Fallback service when Supabase is not available
 import { Review } from '@/types/movie';
 
-let offlineMode = false; // Start in online mode by default
+let offlineMode = false;
 let reviews: Review[] = [];
 
 export const fallbackReviewService = {
   setOfflineMode(isOffline: boolean) {
-    if (isOffline !== offlineMode) {
-      console.log(`🔄 Offline mode changed: ${offlineMode} -> ${isOffline}`);
-      offlineMode = isOffline;
-    }
+    offlineMode = isOffline;
   },
 
   isOfflineMode() {

@@ -1,174 +1,143 @@
-# 🎬 KryptoCritics - Movie Review Platform
+# KryptoCritics - Movie Review Platform
 
-A modern, professional movie review platform built with React, TypeScript, and Supabase. Users can rate movies, write reviews, and manage their watchlists.
+A modern, professional movie review platform built with React, TypeScript, and Supabase. Users can discover movies, submit ratings and reviews, and manage their personal watchlists.
 
-## 🚀 Features
+## Features
 
-- **Movie Reviews & Ratings**: Rate and review movies with a 5-star system
-- **User Authentication**: Secure sign-up/sign-in with Supabase Auth
-- **Wishlist Management**: Add movies to personal watchlist
-- **Professional UI**: Clean, dark theme with responsive design
-- **Real-time Data**: Live updates with Supabase integration
-- **Auto-playing Carousel**: Featured movies showcase
-- **Mobile Responsive**: Optimized for all devices
+- **Movie Discovery**: Browse and explore a curated collection of movies
+- **User Authentication**: Secure sign-up and sign-in functionality
+- **Rating System**: Rate movies on a 5-star scale
+- **Review Management**: Write and share detailed movie reviews
+- **Personal Wishlist**: Save movies to watch later
+- **Responsive Design**: Optimized for desktop and mobile devices
+- **Real-time Updates**: Live data synchronization with Supabase
 
-## 🛠️ Tech Stack
+## Technology Stack
 
 - **Frontend**: React 18, TypeScript, Vite
 - **Styling**: Tailwind CSS, Radix UI Components
-- **Backend**: Supabase (PostgreSQL, Auth, Real-time)
+- **Backend**: Supabase (PostgreSQL, Authentication, Real-time)
 - **State Management**: React Query, Context API
 - **Routing**: React Router DOM
 - **Build Tool**: Vite
 - **Deployment**: Vercel
 
-## 🚀 Deployment Guide
+## Getting Started
 
 ### Prerequisites
 
-1. **Supabase Account**: Create a project at [supabase.com](https://supabase.com)
-2. **Vercel Account**: Sign up at [vercel.com](https://vercel.com)
-3. **GitHub Repository**: Push your code to GitHub
+- Node.js 18+ and npm
+- Supabase account
+- Git
 
-### Step 1: Setup Supabase Database
+### Installation
 
-1. Go to your Supabase project dashboard
-2. Navigate to **SQL Editor** → **New Query**
-3. Copy and paste the contents of `QUICK_SETUP.sql`
-4. Click **Run** to create all necessary tables
+1. Clone the repository
+```bash
+git clone https://github.com/nandhayogesh/film-folio-notes.git
+cd film-folio-notes
+```
 
-### Step 2: Configure Environment Variables
+2. Install dependencies
+```bash
+npm install
+```
 
-1. In your Supabase dashboard, go to **Settings** → **API**
-2. Copy your **Project URL** and **anon public key**
-3. In Vercel, go to your project → **Settings** → **Environment Variables**
-4. Add these variables:
+3. Environment Setup
+```bash
+cp .env.example .env.local
+```
 
+4. Configure environment variables in `.env.local`:
 ```bash
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-### Step 3: Deploy to Vercel
+5. Set up the database
+   - Go to your Supabase project dashboard
+   - Navigate to SQL Editor
+   - Run the SQL script from `QUICK_SETUP.sql`
 
-#### Option A: Vercel CLI (Recommended)
+6. Start the development server
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Login to Vercel
-vercel login
-
-# Deploy from project root
-vercel
-
-# For production deployment
-vercel --prod
-```
-
-#### Option B: GitHub Integration
-1. Connect your GitHub repository to Vercel
-2. Import your project
-3. Configure environment variables
-4. Deploy automatically on push
-
-### Step 4: Verify Deployment
-
-1. Check that the site loads correctly
-2. Test user registration/login
-3. Verify movie rating and review functionality
-4. Test wishlist features
-
-## 🔧 Local Development
-
-```bash
-# Clone the repository
-git clone <your-repo-url>
-cd film-folio-notes
-
-# Install dependencies
-npm install
-
-# Create environment file
-cp .env.example .env.local
-
-# Add your Supabase credentials to .env.local
-# VITE_SUPABASE_URL=your_url
-# VITE_SUPABASE_ANON_KEY=your_key
-
-# Run development server
 npm run dev
 ```
 
-## 📦 Build Commands
+## Available Scripts
 
-```bash
-# Development build
-npm run build:dev
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run type-check` - Check TypeScript types
 
-# Production build
-npm run build
+## Project Structure
 
-# Preview production build
-npm run preview
-
-# Lint code
-npm run lint
+```
+src/
+├── components/          # Reusable UI components
+├── contexts/           # React context providers
+├── data/               # Static data and constants
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions and services
+├── pages/              # Page components
+├── types/              # TypeScript type definitions
+└── assets/             # Static assets
 ```
 
-## 🗄️ Database Schema
+## Database Schema
 
-The application uses these main tables:
+The application uses the following main tables:
+
 - **profiles**: User profile information
 - **reviews**: Movie reviews and ratings
 - **watchlist**: User movie watchlists
 
-## 🔒 Security Features
+## Deployment
 
-- Row Level Security (RLS) enabled on all tables
-- User authentication with Supabase Auth
-- Environment variables for sensitive data
-- Secure API endpoints
+### Vercel Deployment
 
-## 🎯 Performance Optimizations
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Configure environment variables in Vercel dashboard
+4. Deploy automatically
 
-- Lazy loading of images
-- Code splitting with React Router
-- Optimized bundle with Vite
-- CDN delivery via Vercel
-- Responsive image loading
+### Environment Variables (Production)
 
-## 🐛 Troubleshooting
+Set these variables in your Vercel project settings:
 
-### Common Issues
+```
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-1. **Offline Mode Banner**: Ensure Supabase environment variables are set correctly
-2. **Build Errors**: Check TypeScript types and dependencies
-3. **Routing Issues**: Verify `vercel.json` is properly configured
-4. **Database Errors**: Ensure all tables are created in Supabase
+## Contributing
 
-### Environment Variables Checklist
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-- [ ] `VITE_SUPABASE_URL` is set
-- [ ] `VITE_SUPABASE_ANON_KEY` is set
-- [ ] Variables are prefixed with `VITE_`
-- [ ] No trailing slashes in URLs
+## Security
 
-## 📞 Support
+- Row Level Security (RLS) enabled on all database tables
+- Environment variables for sensitive configuration
+- Secure authentication with Supabase Auth
+- Input validation and sanitization
 
-For deployment issues:
-1. Check Vercel deployment logs
-2. Verify Supabase connection
-3. Ensure environment variables are set
-4. Check browser console for errors
+## License
 
-## 🎉 Success!
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-Once deployed, your KryptoCritics movie review platform will be live and ready for users to discover, rate, and review their favorite movies!
+## Support
+
+For support and questions, please open an issue in the GitHub repository.
 
 ---
 
-**Made with ❤️ using React, TypeScript, and Supabase**
+Built with React, TypeScript, and Supabase
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 

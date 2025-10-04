@@ -6,13 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:dev": "vite build --mode development",
-    "build:prod": "vite build --mode production",
+    "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "preview": "vite preview",
-    "deploy": "npm run build && vercel --prod",
-    "deploy:dev": "npm run build:dev && vercel",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

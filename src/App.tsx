@@ -19,12 +19,9 @@ const App = () => {
   useEffect(() => {
     // Test connection on app startup
     const testStartupConnection = async () => {
-      console.log('🚀 App starting - testing Supabase connection...');
       const isConnected = await testConnection();
-      if (isConnected) {
-        console.log('✅ App startup: Supabase connection OK');
-      } else {
-        console.warn('⚠️ App startup: Supabase connection failed - app will run in offline mode');
+      if (!isConnected && process.env.NODE_ENV === 'development') {
+        console.warn('Supabase connection failed - app will run in offline mode');
       }
     };
     testStartupConnection();

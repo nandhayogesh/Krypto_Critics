@@ -32,14 +32,15 @@ export function ReviewForm({ movieId, movieTitle, moviePoster, onReviewSubmitted
 
   // Debug authentication state
   useEffect(() => {
-    console.log('🎬 ReviewForm Debug:', {
-      movieId,
-      movieTitle,
-      isAuthenticated,
-      user: user ? { id: user.id, email: user.email } : null,
-      hasExistingReview: !!existingReview
-    });
-  }, [movieId, movieTitle, isAuthenticated, user, existingReview]);
+    // Authentication state tracking for development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('ReviewForm Authentication:', {
+        movieId,
+        isAuthenticated,
+        hasUser: !!user
+      });
+    }
+  }, [movieId, isAuthenticated, user]);
 
   // Load existing review when user changes (only if authenticated)
   useEffect(() => {

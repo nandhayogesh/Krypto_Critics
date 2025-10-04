@@ -24,13 +24,11 @@ export const reviewService = {
   // Get reviews for a movie
   async getMovieReviews(movieId: string): Promise<Review[]> {
     if (!supabase) {
-      console.warn('⚠️ Supabase not initialized, using fallback');
       fallbackReviewService.setOfflineMode(true);
       return await fallbackReviewService.getMovieReviews(movieId);
     }
 
     try {
-      console.log(`🔍 Loading reviews for movie ${movieId}...`);
       const { data, error } = await supabase
         .from('reviews')
         .select(`
@@ -46,10 +44,8 @@ export const reviewService = {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('❌ Database error loading reviews:', error);
-        // Only set offline mode for connection errors, not for other types of errors
+        // Only set offline mode for connection errors
         if (error.message.includes('connection') || error.message.includes('network') || error.message.includes('timeout')) {
-          console.warn('🌐 Connection issue detected, switching to offline mode');
           fallbackReviewService.setOfflineMode(true);
           return await fallbackReviewService.getMovieReviews(movieId);
         }
@@ -58,13 +54,10 @@ export const reviewService = {
       
       // Reset offline mode if successful
       fallbackReviewService.setOfflineMode(false);
-      console.log(`✅ Loaded ${data.length} reviews for movie ${movieId}`);
       return data.map(this.transformReview);
     } catch (error: any) {
-      console.warn('⚠️ Error loading reviews:', error.message);
       // Only set offline mode for network-related errors
       if (error.message.includes('connection') || error.message.includes('network') || error.message.includes('timeout') || error.message.includes('fetch')) {
-        console.warn('🌐 Network error detected, switching to offline mode');
         fallbackReviewService.setOfflineMode(true);
         return await fallbackReviewService.getMovieReviews(movieId);
       }
