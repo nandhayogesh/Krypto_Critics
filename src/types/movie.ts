@@ -14,13 +14,18 @@ export interface Movie {
 
 export interface Review {
   id: string;
-  movieId: string;
-  userId: string;
-  username: string;
+  movie_id: string;
+  user_id: string;
   rating: number;
   comment: string;
-  createdAt: Date;
-  likes: number;
+  created_at: string;
+  updated_at: string;
+  movie_title?: string;
+  movie_poster?: string;
+  profiles?: {
+    username: string;
+    avatar_url: string | null;
+  };
 }
 
 export interface User {

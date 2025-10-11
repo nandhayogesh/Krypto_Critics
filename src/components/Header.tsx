@@ -1,35 +1,43 @@
-import { Film, Menu, Bell, User, X, LogOut } from "lucide-react";
+import { Film, Menu, Bell, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { AuthModal } from "./AuthModal";
+import { getUsername, setUsername as saveUsername } from "@/lib/localStorageService";
 
 interface HeaderProps {
   // No props needed anymore since we removed search
 }
 
 export function Header({}: HeaderProps) {
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const { user, profile, isAuthenticated, signOut } = useAuth();
+  const [username, setUsernameState] = useState<string>("");
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [tempUsername, setTempUsername] = useState("");
   const navigate = useNavigate();
 
-  const handleSignOut = async () => {
-    if (isSigningOut) return;
-    setIsSigningOut(true);
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Sign out error:', error);
-    } finally {
-      setIsSigningOut(false);
+  useEffect(() => {
+    const storedUsername = getUsername();
+    if (storedUsername) {
+      setUsernameState(storedUsername);
+    }
+  }, []);
+
+  const handleSaveUsername = () => {
+    if (tempUsername.trim()) {
+      saveUsername(tempUsername.trim());
+      setUsernameState(tempUsername.trim());
+      setIsEditingUsername(false);
+      setTempUsername("");
     }
   };
+
+  const startEditingUsername = () => {
+    setTempUsername(username);
+    setIsEditingUsername(true);
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/50">
       <div className="max-w-7xl mx-auto px-4 py-3">
@@ -57,12 +65,10 @@ export function Header({}: HeaderProps) {
                   <Button variant="ghost" className="justify-start text-slate-300 hover:bg-slate-800 hover:text-yellow-500" onClick={() => navigate("/")}>
                     All Movies
                   </Button>
-                  {isAuthenticated && (
-                    <Button variant="ghost" className="justify-start text-slate-300 hover:bg-slate-800 hover:text-yellow-500" onClick={() => navigate("/my-reviews")}>
-                      <User className="h-4 w-4 mr-2" />
-                      My Reviews
-                    </Button>
-                  )}
+                  <Button variant="ghost" className="justify-start text-slate-300 hover:bg-slate-800 hover:text-yellow-500" onClick={() => navigate("/my-reviews")}>
+                    <User className="h-4 w-4 mr-2" />
+                    My Reviews
+                  </Button>
                   <Button variant="ghost" className="justify-start text-slate-300 hover:bg-slate-800 hover:text-yellow-500" onClick={() => navigate("/wishlist")}>
                     <Bell className="h-4 w-4 mr-2" />
                     Wishlist
@@ -76,11 +82,9 @@ export function Header({}: HeaderProps) {
               <Button variant="ghost" size="sm" className="text-slate-300 hover:bg-slate-800 hover:text-yellow-500" onClick={() => navigate("/")}>
                 All
               </Button>
-              {isAuthenticated && (
-                <Button variant="ghost" size="sm" className="text-slate-300 hover:bg-slate-800 hover:text-yellow-500" onClick={() => navigate("/my-reviews")}>
-                  My Reviews
-                </Button>
-              )}
+              <Button variant="ghost" size="sm" className="text-slate-300 hover:bg-slate-800 hover:text-yellow-500" onClick={() => navigate("/my-reviews")}>
+                My Reviews
+              </Button>
             </div>
           </div>
 
@@ -91,68 +95,48 @@ export function Header({}: HeaderProps) {
               <span className="hidden xl:inline">Wishlist</span>
             </Button>
 
-            {/* Authentication Section */}
-            {isAuthenticated && profile ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2 text-slate-300 hover:bg-slate-800">
-                    <Avatar className="h-6 w-6 border border-slate-600">
-                      <AvatarImage src={profile.avatar_url || undefined} />
-                      <AvatarFallback className="text-xs bg-slate-700 text-yellow-500">
-                        {profile.first_name?.[0]}{profile.last_name?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="hidden sm:inline text-sm">
-                      {profile.first_name} {profile.last_name}
-                    </span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-slate-700">
-                  <DropdownMenuItem onClick={() => navigate("/my-reviews")} className="text-slate-300 hover:bg-slate-800 hover:text-yellow-500">
-                    <User className="h-4 w-4 mr-2" />
-                    My Reviews
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/wishlist")} className="text-slate-300 hover:bg-slate-800 hover:text-yellow-500">
-                    <Bell className="h-4 w-4 mr-2" />
-                    Wishlist
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-slate-700" />
-                  <DropdownMenuItem 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleSignOut();
-                    }} 
-                    className="text-red-400 hover:bg-slate-800 hover:text-red-300"
-                    disabled={isSigningOut}
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    {isSigningOut ? 'Signing Out...' : 'Sign Out'}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            {/* Username Section */}
+            {isEditingUsername ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="text"
+                  placeholder="Enter username"
+                  value={tempUsername}
+                  onChange={(e) => setTempUsername(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSaveUsername()}
+                  className="w-32 h-8 text-sm bg-slate-800 border-slate-600 text-slate-200"
+                  autoFocus
+                />
+                <Button size="sm" onClick={handleSaveUsername} className="h-8 bg-yellow-600 hover:bg-yellow-700">
+                  Save
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setIsEditingUsername(false)} className="h-8">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : username ? (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="gap-2 text-slate-300 hover:bg-slate-800"
+                onClick={startEditingUsername}
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline text-sm">{username}</span>
+              </Button>
             ) : (
               <Button 
                 variant="default" 
                 size="sm" 
                 className="text-xs md:text-sm bg-slate-700 text-yellow-500 hover:bg-slate-600 border border-slate-600"
-                onClick={() => setShowAuthModal(true)}
+                onClick={startEditingUsername}
               >
-                Sign In
+                Set Username
               </Button>
             )}
-
-            <Button variant="ghost" size="sm" className="hidden sm:flex px-2">
-              EN
-            </Button>
           </div>
         </div>
       </div>
-      
-      {/* Auth Modal */}
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)} 
-      />
     </header>
   );
 }

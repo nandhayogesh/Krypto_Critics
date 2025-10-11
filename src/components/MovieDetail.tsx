@@ -6,55 +6,38 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ReviewForm } from "./ReviewForm";
-import { Clock, Calendar, User, Heart, MessageCircle, ArrowLeft, RefreshCw } from "lucide-react";
+import { Clock, Calendar, User, Heart, MessageCircle, ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
-import { reviewService } from "@/lib/reviewService";
+import { getMovieStats } from "@/lib/localStorageService";
 
 interface MovieDetailProps {
   movie: Movie;
   reviews: Review[];
   onBack: () => void;
+  onReviewUpdate?: () => void;
 }
 
 export function MovieDetail({ 
   movie, 
-  reviews: initialReviews, 
-  onBack
+  reviews, 
+  onBack,
+  onReviewUpdate
 }: MovieDetailProps) {
   const [movieStats, setMovieStats] = useState({ averageRating: 0, totalReviews: 0 });
-  const [currentReviews, setCurrentReviews] = useState<Review[]>(initialReviews);
-  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
 
   useEffect(() => {
     loadMovieStats();
-    loadReviews();
-  }, [movie.id]);
+  }, [movie.id, reviews]);
 
-  const loadMovieStats = async () => {
-    try {
-      const stats = await reviewService.getMovieStats(movie.id);
-      setMovieStats(stats);
-    } catch (error) {
-      console.error('Error loading movie stats:', error);
-    }
-  };
-
-  const loadReviews = async () => {
-    try {
-      setIsLoadingReviews(true);
-      const reviews = await reviewService.getMovieReviews(movie.id);
-      setCurrentReviews(reviews);
-    } catch (error) {
-      console.error('Error loading reviews:', error);
-    } finally {
-      setIsLoadingReviews(false);
-    }
+  const loadMovieStats = () => {
+    const stats = getMovieStats(movie.id);
+    setMovieStats(stats);
   };
 
   const handleReviewSubmitted = (review: Review) => {
-    // Reload stats and reviews when a review is submitted
+    // Reload stats when a review is submitted
     loadMovieStats();
-    loadReviews();
+    onReviewUpdate?.();
   };
 
   return (
@@ -135,62 +118,47 @@ export function MovieDetail({
           {/* Reviews Section */}
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-semibold">
-                Reviews ({currentReviews.length})
+              <h3 className="text-2xl font-semibold text-slate-100">
+                Reviews ({reviews.length})
               </h3>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={loadReviews}
-                disabled={isLoadingReviews}
-              >
-                {isLoadingReviews ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-              </Button>
             </div>
             
             <div className="space-y-6">
-              {currentReviews.map((review) => (
-                <Card key={review.id}>
+              {reviews.map((review) => (
+                <Card key={review.id} className="bg-slate-900 border-slate-700">
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-4">
                       <Avatar>
-                        <AvatarFallback>
-                          {review.username.charAt(0).toUpperCase()}
+                        <AvatarFallback className="bg-slate-800 text-yellow-500">
+                          {review.profiles?.username?.charAt(0).toUpperCase() || review.user_id.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="font-semibold">{review.username}</span>
+                          <span className="font-semibold text-slate-200">
+                            {review.profiles?.username || review.user_id}
+                          </span>
                           <StarRating rating={review.rating} size="sm" />
-                          <span className="text-sm text-subtle">
-                            {review.createdAt.toLocaleDateString()}
+                          <span className="text-sm text-slate-400">
+                            {new Date(review.created_at).toLocaleDateString()}
                           </span>
                         </div>
                         
-                        <p className="text-foreground mb-3 leading-relaxed">
-                          {review.comment}
-                        </p>
-                        
-                        <div className="flex items-center gap-4 text-sm text-subtle">
-                          <button className="flex items-center gap-1 hover:text-primary transition-colors">
-                            <Heart className="h-4 w-4" />
-                            <span>{review.likes}</span>
-                          </button>
-                        </div>
+                        {review.comment && (
+                          <p className="text-slate-300 mb-3 leading-relaxed">
+                            {review.comment}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
               
-              {currentReviews.length === 0 && (
+              {reviews.length === 0 && (
                 <div className="text-center py-8">
-                  <p className="text-subtle">No reviews yet. Be the first to review this movie!</p>
+                  <p className="text-slate-400">No reviews yet. Be the first to review this movie!</p>
                 </div>
               )}
             </div>

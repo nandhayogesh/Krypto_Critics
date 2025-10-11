@@ -4,9 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Calendar, User, Heart } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { wishlistService } from "@/lib/wishlistService";
-import { movieStatsService } from "@/lib/movieStatsService";
+import { getUsername, isInWishlist, addToWishlist, removeFromWishlist, getMovieStats } from "@/lib/localStorageService";
 import { useToast } from "@/hooks/use-toast";
 
 interface MovieCardProps {
@@ -15,42 +13,46 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ movie, onClick }: MovieCardProps) {
-  const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
-  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
+  const [inWishlist, setInWishlist] = useState(false);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
   const [movieStats, setMovieStats] = useState({ rating: movie.rating, reviewCount: movie.reviewCount });
 
   // Load wishlist status and updated stats
   useEffect(() => {
-    if (isAuthenticated && user) {
-      checkWishlistStatus();
+    const user = getUsername();
+    setUsername(user);
+    if (user) {
+      checkWishlistStatus(user);
     }
     updateMovieStats();
-  }, [isAuthenticated, user, movie.id]);
+  }, [movie.id]);
 
-  const checkWishlistStatus = async () => {
-    if (!user) return;
+  const checkWishlistStatus = (user: string) => {
     try {
-      const inWishlist = await wishlistService.isInWishlist(user.id, movie.id);
-      setIsInWishlist(inWishlist);
+      const inList = isInWishlist(user, movie.id);
+      setInWishlist(inList);
     } catch (error) {
       console.error('Error checking wishlist status:', error);
     }
   };
 
   const updateMovieStats = () => {
-    const stats = movieStatsService.getMovieStats(movie.id);
-    setMovieStats(stats);
+    const stats = getMovieStats(movie.id);
+    setMovieStats({
+      rating: stats.averageRating,
+      reviewCount: stats.totalReviews
+    });
   };
 
-  const handleWishlistToggle = async (e: React.MouseEvent) => {
+  const handleWishlistToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (!isAuthenticated || !user) {
+    if (!username) {
       toast({
-        title: "Sign in required",
-        description: "Please sign in to add movies to your wishlist.",
+        title: "Set username first",
+        description: "Please set a username to add movies to your wishlist.",
         variant: "destructive",
       });
       return;
@@ -58,24 +60,20 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
 
     setIsWishlistLoading(true);
     try {
-      if (isInWishlist) {
-        const success = await wishlistService.removeFromWishlist(user.id, movie.id);
-        if (success) {
-          setIsInWishlist(false);
-          toast({
-            title: "Removed from wishlist",
-            description: `${movie.title} has been removed from your wishlist.`,
-          });
-        }
+      if (inWishlist) {
+        removeFromWishlist(username, movie.id);
+        setInWishlist(false);
+        toast({
+          title: "Removed from wishlist",
+          description: `${movie.title} has been removed from your wishlist.`,
+        });
       } else {
-        const success = await wishlistService.addToWishlist(user.id, movie.id);
-        if (success) {
-          setIsInWishlist(true);
-          toast({
-            title: "Added to wishlist",
-            description: `${movie.title} has been added to your wishlist.`,
-          });
-        }
+        addToWishlist(username, movie.id);
+        setInWishlist(true);
+        toast({
+          title: "Added to wishlist",
+          description: `${movie.title} has been added to your wishlist.`,
+        });
       }
     } catch (error) {
       console.error('Error toggling wishlist:', error);
@@ -121,14 +119,14 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
             variant="ghost"
             size="sm"
             className={`h-9 w-9 p-0 rounded-full bg-slate-800/90 backdrop-blur-sm hover:bg-slate-700/90 transition-all duration-200 border border-slate-600 shadow-lg ${
-              isInWishlist ? 'scale-110' : ''
+              inWishlist ? 'scale-110' : ''
             }`}
             onClick={handleWishlistToggle}
             disabled={isWishlistLoading}
           >
             <Heart 
               className={`h-4 w-4 transition-all duration-200 ${
-                isInWishlist ? 'fill-red-500 text-red-500 scale-110' : 'text-slate-400'
+                inWishlist ? 'fill-red-500 text-red-500 scale-110' : 'text-slate-400'
               }`}
             />
           </Button>
